@@ -6,9 +6,10 @@ export class InfectionRoutes{
         const router = Router();
         const controller = new InfectionController();
         router.get("/",controller.getInfections);
-        router.post("/",controller.createInfections);
+        router.post("/",controller.createInfection);
         router.get("/:id",controller.getInfectionById);
-        router.put("/:id",controller.updateInfections);
+        router.get("/last-week",controller.getInfectionsLastWeek);
+        router.put("/:id",controller.updateInfection);
         router.delete("/:id",controller.deleteInfection);
         return router
     }
