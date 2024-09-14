@@ -7,15 +7,17 @@ WORKDIR /app
 # Copiar todo el package.json
 COPY package*.json ./
 
-# Instalar los node modules
-RUN npm i
+# Instalar las dependencias de producción
+RUN npm ci --only=production
 
-# Copiar los demas archivos
+# Copiar los demás archivos
 COPY . ./
 
-# Correo comando de build
+# Compilar la aplicación
 RUN npm run build
 
+# Exponer el puerto
 EXPOSE 3000
 
-CMD [ "node", "dist/src/app.js" ]
+# Comando para iniciar la aplicación
+CMD ["node", "dist/src/app.js"]

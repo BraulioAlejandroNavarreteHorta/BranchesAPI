@@ -32,8 +32,7 @@ app.post("/", async (req, res) => {
     });
     res.send("Registro Creado")
 });
-
-// app.listen(envs.PORT, ()=>{
-//     console.log(`Servidor corriendo en el puerto ${envs.PORT}`)
+app.listen(envs.PORT, ()=>{
+     console.log(`Servidor corriendo en el puerto ${envs.PORT}`)
 //     emailJob();
-// });
+ });
