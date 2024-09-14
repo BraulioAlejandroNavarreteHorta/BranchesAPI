@@ -7,8 +7,8 @@ export class InfectionRoutes{
         const controller = new InfectionController();
         router.get("/",controller.getInfections);
         router.post("/",controller.createInfection);
-        router.get("/:id",controller.getInfectionById);
         router.get("/last-week",controller.getInfectionsLastWeek);
+        router.get("/:id",controller.getInfectionById);
         router.put("/:id",controller.updateInfection);
         router.delete("/:id",controller.deleteInfection);
         return router
