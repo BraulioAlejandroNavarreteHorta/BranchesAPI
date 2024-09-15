@@ -1,18 +1,21 @@
 version: '3.8'
 
 services:
-  mono_map:
-    build: .
-    container_name: monomap-api
+  monomap_api:
+    image: braulionavarrete/monomap_api:latest
+    container_name: monomap_api
     ports:
       - "3000:3000"
-    environment:
-      PORT: 3000
-      MONGO_URL: mongodb://root:example@mongo_new:27017/
+    env_file:
+      - .env
     depends_on:
       - mongo_new
     networks:
       - app-network
+    environment:
+      PORT: 3000
+      MONGO_URL: mongodb://root:example@mongo_new:27017/
+    
 
   mongo_new:
     image: mongo
