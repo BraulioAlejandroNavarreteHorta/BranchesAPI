@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { InfectionModel } from '../../../data/models/infection.model';
-//import { EmailService } from '../../../domain/services/email.service';
 
 export class InfectionController {
     public getInfections = async (req: Request, res: Response) => {
