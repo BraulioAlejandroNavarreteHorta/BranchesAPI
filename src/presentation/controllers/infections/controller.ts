@@ -36,10 +36,14 @@ export class InfectionController {
                 isSent: false
             });
             res.json(newInfection);
-        } catch (error) {
+        } catch (error:any) {
+            if (error.name === 'ValidationError') {
+
+                return res.status(400).json({ message: "Datos inválidos: " + error.message });
+            }
             return res.status(500).json({ message: "Error al crear el caso" });
         }
-    }
+    }  
 
   
     public getInfectionById = async (req: Request, res: Response) => {
@@ -60,19 +64,22 @@ export class InfectionController {
         try {
             const { id } = req.params;
             const { lat, lng, genre, age, isSent } = req.body;
-
+    
             const updatedInfection = await InfectionModel.findByIdAndUpdate(
                 id,
                 { lat, lng, genre, age, isSent },
-                { new: true }
+                { new: true, runValidators: true } // Agrega `runValidators: true` para validar los datos durante la actualización
             );
-
+    
             if (!updatedInfection) {
                 return res.status(404).json({ message: "Caso no encontrado" });
             }
-
+    
             return res.json(updatedInfection);
-        } catch (error) {
+        } catch (error:any) {
+            if (error.name === 'ValidationError') {
+                return res.status(400).json({ message: "Datos inválidos: " + error.message });
+            }
             return res.status(500).json({ message: "Error al actualizar el caso" });
         }
     }

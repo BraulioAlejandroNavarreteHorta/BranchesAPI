@@ -15,6 +15,7 @@ const infectionSchema = new mongoose.Schema({
     },
     genre: {
         type: String,
+        enum: ["Masculino", "Femenino"],
         required: true
     },
     age: {

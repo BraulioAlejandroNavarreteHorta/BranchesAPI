@@ -39,7 +39,7 @@ export const emailJob = () => {
 
                         console.log(`Caso de viruela del mono con Id ${infection._id} actualizado como email enviado`);
                     } catch (error) {
-                        console.error(`Error al procesar el incidente con Id ${infection._id}:`, error);
+                        console.error(`Error al procesar el caso con Id ${infection._id}:`, error);
                     }
                 })
             );
