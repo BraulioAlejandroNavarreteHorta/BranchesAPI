@@ -78,6 +78,23 @@ export class UserController {
     }
   }
 
+  public async getUser(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const user = await UserModel.findById(id)
+        .select('-password')
+        .populate('branch', 'name code');
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      return res.json(user);
+    } catch (error) {
+      return res.status(500).json({ message: "Error al obtener el usuario" });
+    }
+  }
+
   public async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;

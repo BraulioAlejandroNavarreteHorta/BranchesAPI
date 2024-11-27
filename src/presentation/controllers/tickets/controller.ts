@@ -61,6 +61,26 @@ export class TicketController {
     }
   }
 
+  public async getTicketById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      
+      const ticket = await TicketModel.findById(id)
+        .populate('branch', 'name code')
+        .populate('createdBy', 'name email')
+        .populate('assignedTo', 'name email')
+        .populate('timeline.updatedBy', 'name email');
+
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket no encontrado" });
+      }
+
+      return res.json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: "Error al obtener el ticket" });
+    }
+  }
+
   public async updateTicket(req: Request, res: Response) {
     try {
       const { id } = req.params;

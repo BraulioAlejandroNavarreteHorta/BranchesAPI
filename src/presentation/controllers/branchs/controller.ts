@@ -33,6 +33,23 @@ export class BranchController {
     }
   }
 
+  public async getBranchById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      
+      const branch = await BranchModel.findById(id)
+        .populate('manager', 'name email');
+
+      if (!branch) {
+        return res.status(404).json({ message: "Sucursal no encontrada" });
+      }
+
+      return res.json(branch);
+    } catch (error) {
+      return res.status(500).json({ message: "Error al obtener la sucursal" });
+    }
+  }
+
   public async getNearbyBranches(req: Request, res: Response) {
     try {
       const { longitude, latitude, maxDistance = 10000 } = req.query;
