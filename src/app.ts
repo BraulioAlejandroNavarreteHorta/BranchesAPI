@@ -1,38 +1,51 @@
+// app.ts
 import express from "express";
-import 'dotenv/config'
+import 'dotenv/config';
+import cors from 'cors';
 import { envs } from "./config/envs.plugin";
 import { MongoDatabase } from "./data/init";
-import { InfectionModel } from "./data/models/infection.model";
 import { AppRoutes } from "./presentation/controllers/routes";
-import { emailJob } from "./domain/jobs/email.job";
 
-
+// Inicialización de la aplicación
 const app = express();
-app.use(express.json());
-app.use(AppRoutes.routes);
 
+// Middlewares globales
+app.use(cors());
+app.use(express.json());
+
+// Rutas de la API
+app.use('/api', AppRoutes.routes);
+
+// Ruta de health check
+app.get("/health-check", (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Conexión a la base de datos
 (async () => {
-    await MongoDatabase.connect({ 
-        dbName: "IncidentAPI", 
-        mongoUrl: envs.MONGO_URL ?? "" 
+  try {
+    await MongoDatabase.connect({
+      dbName: "BranchManagementDB",
+      mongoUrl: envs.MONGO_URL ?? ""
     });
+    console.log('📦 Base de datos conectada correctamente');
+  } catch (error) {
+    console.error('Error al conectar la base de datos:', error);
+    process.exit(1);
+  }
 })();
 
-app.get("/", (req, res)=>{
-    res.send("Hola mundo");
+// Iniciar el servidor
+app.listen(envs.PORT, () => {
+  console.log(`🚀 Servidor corriendo en el puerto ${envs.PORT}`);
 });
 
-app.post("/", async (req, res) => {
-    const { title, description, lat, lng } = req.body
-    const newIncident = await InfectionModel.create({
-        title,
-        description,
-        lat,
-        lng
-    });
-    res.send("Registro Creado")
+// Manejo de errores no controlados
+process.on('unhandledRejection', (error: Error) => {
+  console.error('Error no controlado:', error);
 });
-app.listen(envs.PORT, ()=>{
-     console.log(`Servidor corriendo en el puerto ${envs.PORT}`)
-        emailJob();
- });
+
+export default app;
