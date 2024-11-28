@@ -5,42 +5,38 @@ import cors from 'cors';
 import { envs } from "./config/envs.plugin";
 import { MongoDatabase } from "./data/init";
 import { AppRoutes } from "./presentation/controllers/routes";
+import { createDefaultAdmin } from "./data/seed/createDefaultAdmin";
 
-// Inicialización de la aplicación
 const app = express();
 
-// Middlewares globales
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Rutas de la API
-app.use('/api', AppRoutes.routes);
+// Rutas
+app.use(AppRoutes.routes);
 
-// Ruta de health check
-app.get("/health-check", (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Conexión a la base de datos
+// Conexión a DB e inicialización
 (async () => {
   try {
     await MongoDatabase.connect({
-      dbName: "BranchManagementDB",
+      dbName: "TicketManagementDB",
       mongoUrl: envs.MONGO_URL ?? ""
     });
-    console.log('📦 Base de datos conectada correctamente');
+    console.log('Base de datos conectada correctamente');
+    
+    await createDefaultAdmin();
+    console.log('Usuario administrador verificado');
+    
   } catch (error) {
-    console.error('Error al conectar la base de datos:', error);
+    console.error('Error al inicializar:', error);
     process.exit(1);
   }
 })();
 
-// Iniciar el servidor
+// Iniciar servidor
 app.listen(envs.PORT, () => {
-  console.log(`🚀 Servidor corriendo en el puerto ${envs.PORT}`);
+  console.log(`Servidor corriendo en el puerto ${envs.PORT}`);
 });
 
 // Manejo de errores no controlados
