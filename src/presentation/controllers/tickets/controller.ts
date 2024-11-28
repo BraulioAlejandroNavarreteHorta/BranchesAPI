@@ -2,30 +2,39 @@ import { Request, Response } from 'express';
 import { TicketModel } from '../../../data/models/ticket/model';
 
 export class TicketController {
-  public async createTicket(req: Request, res: Response) {
-    try {
-      const ticketData = {
-        ...req.body,
-        timeline: [{
-          status: 'PENDING',
-          comment: 'Ticket creado',
-          updatedBy: req.body.createdBy
-        }]
-      };
-
-      const ticket = await TicketModel.create(ticketData);
-      
-      await ticket.populate([
-        { path: 'branch', select: 'name code' },
-        { path: 'createdBy', select: 'name email' },
-        { path: 'assignedTo', select: 'name email' }
-      ]);
-
-      return res.status(201).json(ticket);
-    } catch (error) {
-      return res.status(500).json({ message: "Error al crear el ticket" });
+    public async createTicket(req: Request, res: Response) {
+        try {
+          const count = await TicketModel.countDocuments();
+          const ticketNumber = `TK-${String(count + 1).padStart(6, '0')}`;
+    
+          const ticketData = {
+            ...req.body,
+            ticketNumber,
+            timeline: [{
+              status: 'PENDING',
+              comment: 'Ticket creado',
+              updatedBy: req.body.createdBy
+            }]
+          };
+    
+          const ticket = await TicketModel.create(ticketData);
+          
+          await ticket.populate([
+            { path: 'branch', select: 'name code' },
+            { path: 'createdBy', select: 'name email' },
+            { path: 'assignedTo', select: 'name email' }
+          ]);
+    
+          return res.status(201).json(ticket);
+        } catch (error) {
+          console.error('Error completo:', error);
+          return res.status(500).json({ 
+            message: "Error al crear el ticket",
+            //@ts-ignore
+            error: error.message
+          });
+        }
     }
-  }
 
   public async getTickets(req: Request, res: Response) {
     try {
@@ -83,49 +92,73 @@ export class TicketController {
 
   public async updateTicket(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const { status, comment, updatedBy, ...updateData } = req.body;
+        const { id } = req.params;
+        const { status, comment, updatedBy, ...updateData } = req.body;
 
-      if (status) {
-        updateData.status = status;
-        updateData.timeline = [{
-          status,
-          comment: comment || `Estado actualizado a ${status}`,
-          updatedBy,
-          timestamp: new Date()
-        }];
-
-        if (status === 'CLOSED') {
-          updateData.closedAt = new Date();
-          updateData.resolutionTime = Math.floor(
-            (updateData.closedAt.getTime() - new Date(updateData.createdAt).getTime()) / 60000
-          );
+        // Verificar si existe el ticket
+        const currentTicket = await TicketModel.findById(id);
+        if (!currentTicket) {
+            return res.status(404).json({ message: "Ticket no encontrado" });
         }
-      }
 
-      const ticket = await TicketModel.findByIdAndUpdate(
-        id,
-        { 
-          $set: updateData,
-          $push: { timeline: updateData.timeline && updateData.timeline[0] }
-        },
-        { new: true, runValidators: true }
-      ).populate([
-        { path: 'branch', select: 'name code' },
-        { path: 'createdBy', select: 'name email' },
-        { path: 'assignedTo', select: 'name email' },
-        { path: 'timeline.updatedBy', select: 'name email' }
-      ]);
+        // Preparar los datos de actualización
+        const updateObj: any = { ...updateData };
 
-      if (!ticket) {
-        return res.status(404).json({ message: "Ticket no encontrado" });
-      }
+        if (status) {
+            updateObj.status = status;
+            
+            // Crear nueva entrada en el timeline
+            const timelineEntry = {
+                status,
+                comment: comment || `Estado actualizado a ${status}`,
+                updatedBy,
+                timestamp: new Date()
+            };
 
-      return res.json(ticket);
+            // Si el status es CLOSED, calcular el tiempo de resolución
+            if (status === 'CLOSED') {
+                updateObj.closedAt = new Date();
+                updateObj.resolutionTime = Math.floor(
+                    (updateObj.closedAt.getTime() - currentTicket.createdAt.getTime()) / 60000
+                );
+            }
+
+            // Usar $push para agregar al timeline
+            updateObj.$push = { timeline: timelineEntry };
+        }
+
+        // Actualizar el ticket
+        const ticket = await TicketModel.findByIdAndUpdate(
+            id,
+            updateObj,
+            {
+                new: true,
+                runValidators: true
+            }
+        ).populate([
+            { 
+                path: 'branch', 
+                select: 'name code manager',
+                populate: { 
+                    path: 'manager',
+                    select: 'email'
+                }
+            },
+            { path: 'createdBy', select: 'name email' },
+            { path: 'assignedTo', select: 'name email' },
+            { path: 'timeline.updatedBy', select: 'name email' }
+        ]);
+
+        return res.json(ticket);
     } catch (error) {
-      return res.status(500).json({ message: "Error al actualizar ticket" });
+        console.error('Error al actualizar ticket:', error);
+        return res.status(500).json({
+            message: "Error al actualizar ticket",
+            //@ts-ignore
+            error: error.message
+        });
     }
-  }
+}
 
   public async deleteTicket(req: Request, res: Response) {
     try {

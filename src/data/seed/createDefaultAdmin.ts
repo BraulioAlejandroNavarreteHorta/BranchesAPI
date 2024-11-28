@@ -7,7 +7,7 @@ export const createDefaultAdmin = async () => {
     if (!adminExists) {
       await UserModel.create({
         name: 'Admin',
-        email: 'admin@system.com',
+        email: 'donyale132@gmail.com',
         password: 'Admin123!',
         role: 'ADMIN',
         isActive: true
