@@ -1,144 +1,204 @@
-# Monomap API
+# Sistema de Gestión de Sucursales y Tickets
 
-Este proyecto consiste en la creación de una API REST escalable que permite registrar y gestionar los casos de la Viruela del Mono en México. La API está desarrollada en Node.js utilizando Express y MongoDB como base de datos.
+API REST para la gestión de sucursales y tickets de servicio, con capacidades de geolocalización y notificaciones por email. Desarrollada con Node.js, Express y MongoDB.
 
 ## Requisitos Previos
 
-Antes de ejecutar la aplicación, asegúrate de tener instalado lo siguiente:
-
-- [Node.js](https://nodejs.org/) (versión 14 o superior)
+- [Node.js](https://nodejs.org/) (versión 18 o superior)
 - [npm](https://www.npmjs.com/)
-- [Docker](https://www.docker.com/) (opcional para ejecutar en contenedor)
+- [Docker](https://www.docker.com/)
 - [MongoDB](https://www.mongodb.com/) (si decides ejecutar en local sin Docker)
 
 ## Instalación
 
 ### Clonar el repositorio
 
-Para empezar, clona el repositorio del proyecto en tu máquina local utilizando el siguiente comando:
-
 ```bash
-git clone https://github.com/BraulioAlejandroNavarreteHorta/MonoMap.git
-
+git clone [URL_DE_TU_REPOSITORIO]
+cd [NOMBRE_DEL_DIRECTORIO]
 ```
 
-## Configurar el archivo de entorno
-Crea un archivo .env en la raíz del proyecto con las siguientes variables de entorno:
+### Configurar variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
 ```bash
 PORT=3000
-MONGO_URL=mongodb://localhost:27017/monomap
-MAIL_SECRET_KEY=tu_clave_secreta
+MONGO_URL=mongodb://root:example@localhost:27017/
+MAIL_SECRET_KEY=dwhsgoyuflsgkkxu
 MAIL_SERVICE=gmail
-MAIL_USER=tu_correo@gmail.com
+MAIL_USER=donyale132@gmail.com
 MAPBOX_ACCESS_TOKEN=tu_mapbox_token
+JWT_SECRET=123456
 ```
 
-Reemplaza tu_clave_secreta, tu_correo@gmail.com y tu_mapbox_token con tus valores reales.
+### Instalación de dependencias
 
-## Instalar las dependencias
-Ejecuta el siguiente comando para instalar todas las dependencias del proyecto:
 ```bash
 npm install
 ```
 
-## Crear contenedor
-Ejecuta el siguiente comando para crear el contenedor en docker
+## Ejecución
 
-```bash
-docker-compose up -d --build
-```
+### Desarrollo local
 
-## Iniciar el proyecto
-
-Ejecuta el siguiente comando para correr el proyecto
 ```bash
 npm run dev
 ```
 
-## Ejecución con Docker
-Asegúrate de tener Docker instalado.
-Descargar la Imagen desde Docker Hub
-Si no tienes el código fuente del proyecto, puedes ejecutar la imagen directamente desde Docker Hub. Descarga la imagen con el siguiente comando:
+### Producción con Docker Compose
 
 ```bash
-docker pull braulionavarrete/monomap_api:latest
+docker-compose up -d
 ```
 
-### Paso 1: Levantar MongoDB en Docker
-Primero, necesitas levantar un contenedor de MongoDB. Ejecuta el siguiente comando:
-```bash
-docker run -d \
-  --name mongo_new \
-  -e MONGO_INITDB_ROOT_USERNAME=root \
-  -e MONGO_INITDB_ROOT_PASSWORD=example \
-  -p 27017:27017 \
-  mongo:4.4
+## Estructura del Proyecto
+
+```
+src/
+├── config/
+│   └── envs.plugin.ts
+├── data/
+│   ├── models/
+│   │   ├── user/
+│   │   ├── branch/
+│   │   └── ticket/
+│   └── init.ts
+├── domain/
+│   ├── services/
+│   └── templates/
+└── presentation/
+    ├── controllers/
+    ├── middlewares/
+    └── routes/
 ```
 
-### Paso 2: Ejecutar la Imagen de la API
-Luego, ejecuta la imagen de la API que descargaste de Docker Hub:
-```bash
-docker run -d \
-  --name monomap_api \
-  -p 3000:3000 \
-  --env PORT=3000 \
-  --env MONGO_URL=mongodb://root:example@mongo_new:27017/monomap \
-  --env MAIL_SECRET_KEY=tu_clave_secreta \
-  --env MAIL_SERVICE=gmail \
-  --env MAIL_USER=tu_correo@gmail.com \
-  --env MAPBOX_ACCESS_TOKEN=tu_mapbox_token \
-  --link mongo_new:mongo_new \
-  braulionavarrete/monomap_api:latest
-```
-Reemplaza tu_clave_secreta, tu_correo@gmail.com y tu_mapbox_token con tus valores reales.
+## Endpoints API
 
-## Acceder a la Aplicación
-Con los contenedores en ejecución, accede a la API desde tu navegador o Postman en:
+### Autenticación
 
-### Obtener todos los casos de viruela del mono:
-[GET]
-http://localhost:3000/api/infections
-
-### Crear un caso de viruela del mono:
-[POST]
-http://localhost:3000/api/infections
-
-body (raw):
-```json
+```http
+POST /api/users/login
 {
-  "lat": 21.152514652376595,
-  "lng": -101.71183931837416,
-  "genre": "Masculino",
-  "age": 19
+    "email": "admin@system.com",
+    "password": "Admin123!"
 }
 ```
 
-### Actualizar un caso de viruela del mono:
-[UPDATE]
-http://localhost:3000/api/infections/:id
+### Sucursales
 
-body (raw):
-```json
+```http
+# Obtener todas las sucursales
+GET /api/branches
+
+# Crear sucursal
+POST /api/branches
 {
-  "lat": 38.1234,
-  "lng": -123.4567,
-  "genre": "Femenino",
-  "age": 25
+    "name": "Sucursal Centro",
+    "code": "SUC-001",
+    "location": {
+        "type": "Point",
+        "coordinates": [-99.1332, 19.4326]
+    },
+    "manager": "id_del_manager"
+}
+
+# Obtener sucursales cercanas
+GET /api/branches/nearby?longitude=-99.1332&latitude=19.4326&maxDistance=5000
+```
+
+### Tickets
+
+```http
+# Crear ticket
+POST /api/tickets
+{
+    "title": "Falla en equipo",
+    "description": "No enciende computadora",
+    "branch": "id_de_sucursal",
+    "category": "IT_SUPPORT",
+    "priority": "HIGH",
+    "createdBy": "id_del_usuario",
+    "location": {
+        "type": "Point",
+        "coordinates": [-99.1332, 19.4326]
+    }
+}
+
+# Obtener tickets
+GET /api/tickets
+
+# Actualizar ticket
+PUT /api/tickets/{id}
+{
+    "status": "IN_PROGRESS",
+    "comment": "Trabajando en solución"
 }
 ```
 
-### Eliminar un caso de viruela del mono:
-[DELETE]
-http://localhost:3000/api/infections/:id
+## Funcionalidades Principales
 
+- Autenticación de usuarios con JWT
+- Gestión de sucursales con geolocalización
+- Sistema de tickets con prioridades y categorías
+- Notificaciones por correo automáticas
+- Búsqueda de sucursales y tickets por ubicación
 
-### Obtener algún caso por ID:
-[GET]
-http://localhost:3000/api/infections/:id
+## Docker
 
+### Construir imagen
 
-### Obtener los todos los casos de los últimos siete días:
-[GET]
-http://localhost:3000/api/infections/last-week
+```bash
+docker build -t braulionavarrete/branches_api .
+```
 
+### Desplegar con Docker Compose
 
+```bash
+docker-compose up -d
+```
+
+El sistema estará disponible en `http://localhost:3000`
+
+## Notificaciones por Email
+
+El sistema envía notificaciones automáticas por correo cuando:
+- Se crea un nuevo ticket
+- Se actualiza el estado de un ticket
+- Se asigna un ticket a un técnico
+
+Los correos incluyen:
+- Detalles del ticket
+- Mapa de ubicación
+- Estado actual
+- Información de la sucursal
+
+## Mantenimiento
+
+### Logs
+
+```bash
+docker-compose logs -f
+```
+
+### Detener servicios
+
+```bash
+docker-compose down
+```
+
+## Seguridad
+
+- Autenticación mediante JWT
+- Middlewares de autorización por roles
+- Validación de datos en endpoints
+- Sanitización de entradas
+- Encriptación de contraseñas
+
+## Contribución
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
