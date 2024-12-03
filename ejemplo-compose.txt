@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  monomap_api:
-    image: braulionavarrete/monomap_api:latest
-    container_name: monomap_api
+  branches_api:
+    image: braulionavarrete/branches_api:latest
+    container_name: branches_api
     ports:
       - "3000:3000"
     env_file:

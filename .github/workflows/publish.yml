@@ -16,12 +16,12 @@ jobs:
         run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
 
       - name: Build Docker image
-        run: docker build -t braulionavarrete/monomap_api:${{ github.sha }} .
+        run: docker build -t braulionavarrete/branches_api:${{ github.sha }} .
 
       - name: Tag Latest
-        run: docker tag braulionavarrete/monomap_api:${{ github.sha }} braulionavarrete/monomap_api:latest
+        run: docker tag braulionavarrete/branches_api:${{ github.sha }} braulionavarrete/branches_api:latest
 
       - name: Push Docker image
         run: | 
-          docker push braulionavarrete/monomap_api:${{ github.sha }}
-          docker push braulionavarrete/monomap_api:latest
+          docker push braulionavarrete/branches_api:${{ github.sha }}
+          docker push braulionavarrete/branches_api:latest

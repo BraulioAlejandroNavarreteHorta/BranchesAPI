@@ -73,3 +73,5 @@ process.on('SIGINT', () => {
 });
 
 export default app;
+
+//TEST GITHUB ACTIONS
