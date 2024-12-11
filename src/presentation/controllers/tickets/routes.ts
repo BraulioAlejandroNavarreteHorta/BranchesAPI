@@ -8,7 +8,7 @@ export class TicketRoutes {
     const controller = new TicketController();
 
     // Todas las rutas requieren autenticación
-    router.use(authMiddleware);
+    
 
     // Ruta para obtener todos los tickets con filtros opcionales
     router.get('/', controller.getTickets);

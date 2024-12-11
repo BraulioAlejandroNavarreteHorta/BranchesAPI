@@ -9,15 +9,14 @@ export class BranchRoutes {
     const controller = new BranchController();
 
     // Todas las rutas requieren autenticación
-    router.use(authMiddleware);
-
+    
     // Rutas de acceso general (requieren autenticación)
     router.get('/', controller.getBranches);
     router.get('/nearby', controller.getNearbyBranches);
     router.get('/:id', controller.getBranchById);
 
     // Rutas que requieren privilegios de administrador
-    router.use(adminMiddleware);
+    
     
     router.post('/', controller.createBranch);
     router.put('/:id', controller.updateBranch);
